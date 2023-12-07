@@ -34,7 +34,7 @@ Feel free to fork this repository, make changes, and submit pull requests if you
 
 ## Issues
 
-If you encounter any issues or have suggestions for improvements, please [create an issue](link-to-issues) on this GitHub repository.
+If you encounter any issues or have suggestions for improvements, please ([link-to-issues](https://github.com/Vabolos/FunStick-mcplugin/issues/new)) on this GitHub repository.
 
 ## License
 

@@ -11,7 +11,7 @@ The FunStick plugin is a simple Minecraft Spigot plugin that adds a unique stick
 
 ## Installation
 
-1. Download the latest release of the plugin from the [Releases](link-to-releases) section.
+1. Download the latest release of the plugin from the [Releases](https://github.com/Vabolos/FunStick-mcplugin/releases) section.
 2. Place the downloaded `.jar` file into the `plugins` folder of your Minecraft server.
 3. Restart or reload the server.
 

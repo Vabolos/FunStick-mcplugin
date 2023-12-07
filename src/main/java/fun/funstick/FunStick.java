@@ -77,7 +77,7 @@ public class FunStick extends JavaPlugin implements Listener {
 
     private void launchSheep(Player player) {
         Sheep sheep = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection().multiply(2)), Sheep.class);
-        sheep.setVelocity(player.getLocation().getDirection().multiply(2)); // Modify velocity as needed
+        sheep.setVelocity(player.getLocation().getDirection().multiply(4)); // Modify velocity as needed
 
         // Play particle effects (adjust as desired)
         player.getWorld().spawnParticle(Particle.FLAME, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0.1);

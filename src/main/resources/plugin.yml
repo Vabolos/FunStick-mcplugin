@@ -1,0 +1,4 @@
+name: FunStick
+version: '${project.version}'
+main: fun.funstick.FunStick
+api-version: '1.20'

@@ -34,7 +34,7 @@ public class FunStick extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        if (item != null && item.getType() == Material.STICK && item.hasItemMeta()
+        if (item != null && item.getType() == Material.BLAZE_ROD && item.hasItemMeta()
                 && Objects.requireNonNull(item.getItemMeta()).hasDisplayName()
                 && ChatColor.stripColor(Objects.requireNonNull(item.getItemMeta().getDisplayName())).equalsIgnoreCase("funstick")) {
 
@@ -49,7 +49,7 @@ public class FunStick extends JavaPlugin implements Listener {
             Player player = (Player) entity;
             ItemStack item = event.getItem().getItemStack();
 
-            if (item.getType() == Material.STICK && item.hasItemMeta()
+            if (item.getType() == Material.BLAZE_ROD && item.hasItemMeta()
                     && Objects.requireNonNull(item.getItemMeta()).hasDisplayName()
                     && ChatColor.stripColor(Objects.requireNonNull(item.getItemMeta().getDisplayName())).equalsIgnoreCase("funstick")) {
 

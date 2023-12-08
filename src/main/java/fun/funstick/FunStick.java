@@ -79,12 +79,26 @@ public class FunStick extends JavaPlugin implements Listener {
         Sheep sheep = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection().multiply(2)), Sheep.class);
         sheep.setVelocity(player.getLocation().getDirection().multiply(4)); // Modify velocity as needed
 
-        // Play particle effects (adjust as desired)
+        // Play original shooting effects
         player.getWorld().spawnParticle(Particle.FLAME, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0.1);
         player.getWorld().spawnParticle(Particle.CLOUD, sheep.getLocation(), 30, 0.2, 0.2, 0.2, 0.1);
         player.getWorld().spawnParticle(Particle.CRIT, sheep.getLocation(), 20, 0.3, 0.3, 0.3, 0.1);
-
-        // Play a shooting sound
         player.getWorld().playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
+
+        // Schedule impact effects after a delay (change the delay as needed)
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            sheep.getWorld().createExplosion(sheep.getLocation(), 5.0f, false, true, player); // Larger explosion
+
+            // Add a larger particle effect with brighter colors
+            sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                    new Particle.DustOptions(Color.BLACK, 1)); // Black particles
+            sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                    new Particle.DustOptions(Color.AQUA, 1)); // Cyan particles
+            sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                    new Particle.DustOptions(Color.BLUE, 1)); // Blue particles
+
+            sheep.getWorld().playSound(sheep.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 2.0f, 1.0f); // Increased fireworks sound volume
+            sheep.remove(); // Remove the sheep after the impact effects
+        }, 8L); // 20 ticks = 1 second (adjust as needed)
     }
 }

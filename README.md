@@ -17,7 +17,7 @@ The FunStick plugin is a simple Minecraft Spigot plugin that adds a unique stick
 
 ## Usage
 
-- Obtain the "funstick" in-game by renaming a stick to "funstick" using an anvil.
+- Obtain the "funstick" in-game by renaming a blazerod to "funstick" using an anvil.
 - Hold the "funstick" in your hand and hit any surface to spawn a random-colored sheep.
 
 ## Commands

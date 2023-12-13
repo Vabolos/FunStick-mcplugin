@@ -4,9 +4,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Sheep;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -45,9 +43,9 @@ public class FunStick extends JavaPlugin implements Listener {
             if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
                 shootSheep = !shootSheep; // Toggle shooting behavior
                 if (shootSheep) {
-                    player.sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + "FunStick" + ChatColor.GRAY + "] " + ChatColor.DARK_AQUA + "Switched to shooting sheep!");
+                    player.sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + "FunStick" + ChatColor.GRAY + "] " + ChatColor.WHITE + "Switched to shooting sheep!");
                 } else {
-                    player.sendMessage(ChatColor.GRAY + "[" + ChatColor.AQUA + "FunStick" + ChatColor.GRAY + "] " + ChatColor.DARK_AQUA + "Switched to shooting particles!");
+                    player.sendMessage(ChatColor.GRAY + "[" + ChatColor.AQUA + "FunStick" + ChatColor.GRAY + "] " + ChatColor.WHITE + "Switched to shooting particles!");
                 }
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f); // Play button click sound
                 event.setCancelled(true); // Cancel the event to avoid using the "funstick" when toggling
@@ -92,31 +90,40 @@ public class FunStick extends JavaPlugin implements Listener {
 
     private void launchSheep(Player player) {
         if (!shootSheep) {
-            // Shooting ice effects
-            Sheep sheep = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection().multiply(2)), Sheep.class);
-            sheep.setVelocity(player.getLocation().getDirection().multiply(4)); // Original velocity
+            double trailLength = 100.0; // Length of the trail
+            double particleInterval = 0.3; // Interval between particles
 
-            // Play ice shooting effects
-            player.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0,
-                    new Particle.DustOptions(Color.BLUE, 1)); // Blue particles
-            player.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0,
-                    new Particle.DustOptions(Color.WHITE, 1)); // White particles
+            // Create a wider, faster, and longer trail of redstone particles
+            for (double t = 0; t < trailLength; t += particleInterval) {
+                double x = player.getEyeLocation().getX() + t * player.getLocation().getDirection().getX();
+                double y = player.getEyeLocation().getY() + t * player.getLocation().getDirection().getY() - 0.5; // Lower the Y-coordinate
+                double z = player.getEyeLocation().getZ() + t * player.getLocation().getDirection().getZ();
 
+                // Redstone's particles (white and aqua)
+                player.getWorld().spawnParticle(Particle.REDSTONE, new Location(player.getWorld(), x, y, z), 1, 0, 0, 0, 1,
+                        new Particle.DustOptions(Color.WHITE, 6)); // White color
+
+                player.getWorld().spawnParticle(Particle.REDSTONE, new Location(player.getWorld(), x, y, z), 1, 0, 0, 0, 1,
+                        new Particle.DustOptions(Color.AQUA, 6)); // Aqua color
+
+                // Enchantment table particles
+                player.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, new Location(player.getWorld(), x, y, z), 1, 0, 0, 0, 0);
+            }
+
+            // Add flame effect moving outward
+            Location playerLocation = player.getLocation();
+            for (int i = 0; i < 10; i++) {
+                double radius = i * 0.5;
+                for (double theta = 0; theta < 2 * Math.PI; theta += Math.PI / 12) {
+                    double deltaX = radius * Math.cos(theta);
+                    double deltaZ = radius * Math.sin(theta);
+                    Location flameLocation = playerLocation.clone().add(deltaX, 0, deltaZ);
+                    player.getWorld().spawnParticle(Particle.FLAME, flameLocation, 1, 0, 0, 0, 0);
+                }
+            }
+
+            // Play sound effects
             player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 1.0f);
-            // Additional effects or adjustments specific to shooting ice
-
-            Bukkit.getScheduler().runTaskLater(this, () -> {
-                sheep.getWorld().createExplosion(sheep.getLocation(), 5.0f, true, true, player); // Larger explosion
-
-                // Add a larger particle effect with brighter colors
-                sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
-                        new Particle.DustOptions(Color.BLUE, 1)); // Blue particles
-                sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
-                        new Particle.DustOptions(Color.WHITE, 1)); // White particles
-
-                sheep.getWorld().playSound(sheep.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 2.0f, 1.0f); // Increased fireworks sound volume
-                sheep.remove(); // Remove the sheep after the impact effects
-            }, 10L); // 10 ticks delay for the larger explosion
         } else {
             // Your existing sheep shooting logic
             Sheep sheep = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection().multiply(2)), Sheep.class);
@@ -132,10 +139,10 @@ public class FunStick extends JavaPlugin implements Listener {
             Bukkit.getScheduler().runTaskTimer(this, () -> {
                 if (!sheep.isDead()) {
                     sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 20, 0.2, 0.2, 0.2, 0.5,
-                            new Particle.DustOptions(Color.BLACK, 1)); // Larger black trail particles
+                            new Particle.DustOptions(Color.BLACK, 2)); // Larger black trail particles
 
                     // Additional larger particle trail for enchantment effect
-                    sheep.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, sheep.getLocation(), 20, 0.5, 0.5, 0.5, 0.3);
+                    sheep.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, sheep.getLocation(), 100, 0.5, 0.5, 0.5, 0.3);
 
                     Block block = sheep.getLocation().getBlock().getRelative(BlockFace.DOWN);
                     if (block.getType() != Material.AIR) { // Check if the block below the sheep is solid

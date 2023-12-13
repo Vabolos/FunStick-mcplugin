@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Sheep;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemFlag;
@@ -19,6 +20,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.util.Objects;
 
 public class FunStick extends JavaPlugin implements Listener {
+    private boolean shootSheep = true; // Variable to toggle shooting behavior
 
     @Override
     public void onEnable() {
@@ -40,7 +42,18 @@ public class FunStick extends JavaPlugin implements Listener {
                 && Objects.requireNonNull(item.getItemMeta()).hasDisplayName()
                 && ChatColor.stripColor(Objects.requireNonNull(item.getItemMeta().getDisplayName())).equalsIgnoreCase("funstick")) {
 
-            launchSheep(player);
+            if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+                shootSheep = !shootSheep; // Toggle shooting behavior
+                if (shootSheep) {
+                    player.sendMessage(ChatColor.GRAY + "[" + ChatColor.DARK_AQUA + "FunStick" + ChatColor.GRAY + "] " + ChatColor.DARK_AQUA + "Switched to shooting sheep!");
+                } else {
+                    player.sendMessage(ChatColor.GRAY + "[" + ChatColor.AQUA + "FunStick" + ChatColor.GRAY + "] " + ChatColor.DARK_AQUA + "Switched to shooting particles!");
+                }
+                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0f, 1.0f); // Play button click sound
+                event.setCancelled(true); // Cancel the event to avoid using the "funstick" when toggling
+            } else {
+                launchSheep(player);
+            }
         }
     }
 
@@ -78,41 +91,69 @@ public class FunStick extends JavaPlugin implements Listener {
     }
 
     private void launchSheep(Player player) {
-        Sheep sheep = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection().multiply(2)), Sheep.class);
-        sheep.setVelocity(player.getLocation().getDirection().multiply(4)); // Original velocity
+        if (!shootSheep) {
+            // Shooting ice effects
+            Sheep sheep = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection().multiply(2)), Sheep.class);
+            sheep.setVelocity(player.getLocation().getDirection().multiply(4)); // Original velocity
 
-        // Play original shooting effects
-        player.getWorld().spawnParticle(Particle.FLAME, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0.1);
-        player.getWorld().spawnParticle(Particle.CLOUD, sheep.getLocation(), 30, 0.2, 0.2, 0.2, 0.1);
-        player.getWorld().spawnParticle(Particle.CRIT, sheep.getLocation(), 20, 0.3, 0.3, 0.3, 0.1);
-        player.getWorld().playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
+            // Play ice shooting effects
+            player.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0,
+                    new Particle.DustOptions(Color.BLUE, 1)); // Blue particles
+            player.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0,
+                    new Particle.DustOptions(Color.WHITE, 1)); // White particles
 
-        // Custom movement loop for the sheep
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            if (!sheep.isDead()) {
-                sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 20, 0.2, 0.2, 0.2, 0.5,
-                        new Particle.DustOptions(Color.BLACK, 1)); // Larger black trail particles
+            player.getWorld().playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 1.0f, 1.0f);
+            // Additional effects or adjustments specific to shooting ice
 
-                // Additional larger particle trail for enchantment effect
-                sheep.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, sheep.getLocation(), 20, 0.5, 0.5, 0.5, 0.3);
+            Bukkit.getScheduler().runTaskLater(this, () -> {
+                sheep.getWorld().createExplosion(sheep.getLocation(), 5.0f, true, true, player); // Larger explosion
 
-                Block block = sheep.getLocation().getBlock().getRelative(BlockFace.DOWN);
-                if (block.getType() != Material.AIR) { // Check if the block below the sheep is solid
-                    sheep.getWorld().createExplosion(sheep.getLocation(), 5.0f, false, true, player); // Larger explosion
+                // Add a larger particle effect with brighter colors
+                sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                        new Particle.DustOptions(Color.BLUE, 1)); // Blue particles
+                sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                        new Particle.DustOptions(Color.WHITE, 1)); // White particles
 
-                    // Add a larger particle effect with brighter colors
-                    sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
-                            new Particle.DustOptions(Color.BLACK, 1)); // Black particles
-                    sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
-                            new Particle.DustOptions(Color.AQUA, 1)); // Cyan particles
-                    sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
-                            new Particle.DustOptions(Color.BLUE, 1)); // Blue particles
+                sheep.getWorld().playSound(sheep.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 2.0f, 1.0f); // Increased fireworks sound volume
+                sheep.remove(); // Remove the sheep after the impact effects
+            }, 10L); // 10 ticks delay for the larger explosion
+        } else {
+            // Your existing sheep shooting logic
+            Sheep sheep = player.getWorld().spawn(player.getEyeLocation().add(player.getLocation().getDirection().multiply(2)), Sheep.class);
+            sheep.setVelocity(player.getLocation().getDirection().multiply(4)); // Original velocity
 
-                    sheep.getWorld().playSound(sheep.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 2.0f, 1.0f); // Increased fireworks sound volume
-                    sheep.remove(); // Remove the sheep after the impact effects
+            // Play original shooting effects
+            player.getWorld().spawnParticle(Particle.FLAME, sheep.getLocation(), 50, 0.5, 0.5, 0.5, 0.1);
+            player.getWorld().spawnParticle(Particle.CLOUD, sheep.getLocation(), 30, 0.2, 0.2, 0.2, 0.1);
+            player.getWorld().spawnParticle(Particle.CRIT, sheep.getLocation(), 20, 0.3, 0.3, 0.3, 0.1);
+            player.getWorld().playSound(player.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_LAUNCH, 1.0f, 1.0f);
+
+            // Custom movement loop for the sheep
+            Bukkit.getScheduler().runTaskTimer(this, () -> {
+                if (!sheep.isDead()) {
+                    sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 20, 0.2, 0.2, 0.2, 0.5,
+                            new Particle.DustOptions(Color.BLACK, 1)); // Larger black trail particles
+
+                    // Additional larger particle trail for enchantment effect
+                    sheep.getWorld().spawnParticle(Particle.ENCHANTMENT_TABLE, sheep.getLocation(), 20, 0.5, 0.5, 0.5, 0.3);
+
+                    Block block = sheep.getLocation().getBlock().getRelative(BlockFace.DOWN);
+                    if (block.getType() != Material.AIR) { // Check if the block below the sheep is solid
+                        sheep.getWorld().createExplosion(sheep.getLocation(), 5.0f, false, true, player); // Larger explosion
+
+                        // Add a larger particle effect with brighter colors
+                        sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                                new Particle.DustOptions(Color.BLACK, 1)); // Black particles
+                        sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                                new Particle.DustOptions(Color.AQUA, 1)); // Cyan particles
+                        sheep.getWorld().spawnParticle(Particle.REDSTONE, sheep.getLocation(), 500, 2, 2, 2, 1,
+                                new Particle.DustOptions(Color.BLUE, 1)); // Blue particles
+
+                        sheep.getWorld().playSound(sheep.getLocation(), Sound.ENTITY_FIREWORK_ROCKET_TWINKLE, 2.0f, 1.0f); // Increased fireworks sound volume
+                        sheep.remove(); // Remove the sheep after the impact effects
+                    }
                 }
-            }
-        }, 0L, 1L); // Check for movement and impact continuously (every tick)
+            }, 0L, 1L); // Check for movement and impact continuously (every tick)
+        }
     }
 }
-
